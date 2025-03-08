@@ -7,6 +7,7 @@ import (
 	"mime"
 	"net/http"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -17,14 +18,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	resp, err := http.Get(args[1])
+	downloadLink := args[1]
+
+	resp, err := http.Get(downloadLink)
 	if err != nil {
 		panic(err)
 	}
 
-	mediaType, params, err := mime.ParseMediaType(resp.Header.Get("Content-Disposition"))
+	var filename string
+	_, params, err := mime.ParseMediaType(resp.Header.Get("Content-Disposition"))
+
 	if err != nil {
-		panic(err)
+		linkSplit := strings.Split(downloadLink, "/")
+
+		filename = linkSplit[len(linkSplit)-1]
+	} else {
+		filename = params["filename"]
 	}
 
 	contentLength := resp.Header.Get("Content-Length")
@@ -32,27 +41,23 @@ func main() {
 		contentLength = "0"
 	}
 
-	if mediaType == "attachment" {
-		file := src.CreateFile(params["filename"])
+	file := src.CreateFile(filename)
 
-		fmt.Println("Downloading:", params["filename"])
-		fmt.Println("Size:", src.FormattedLength(contentLength))
+	fmt.Println("Downloading:", filename)
+	fmt.Println("Size:", src.FormattedLength(contentLength))
 
-		defer func(Body io.ReadCloser) {
-			err := Body.Close()
-			if err != nil {
-				panic(err)
-			}
-		}(resp.Body)
-
-		go src.Downloaded(contentLength, file)
-
-		_, err = io.Copy(file, resp.Body)
-
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
 		if err != nil {
 			panic(err)
 		}
-	} else {
-		panic("Unknown media type: " + mediaType)
+	}(resp.Body)
+
+	go src.Downloaded(contentLength, file)
+
+	_, err = io.Copy(file, resp.Body)
+
+	if err != nil {
+		panic(err)
 	}
 }

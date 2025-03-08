@@ -3,6 +3,7 @@ package src
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -51,5 +52,7 @@ func FormattedSizePerSecond(size int64, oldSize int64, millis int64) string {
 	timesToSecond := time.Second.Milliseconds() / millis
 	downloadPerSecond := downloadedSize * timesToSecond
 
-	return FormattedLength(ParseStr(downloadPerSecond)) + "/s"
+	formattedSize := FormattedLength(ParseStr(downloadPerSecond))
+
+	return strings.ReplaceAll(formattedSize, "Unknown", "0.00 KB") + "/s"
 }
