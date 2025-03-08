@@ -6,20 +6,30 @@ import (
 	"io"
 	"mime"
 	"net/http"
+	"os"
 )
 
 func main() {
-	downloadLink := "https://cloud.tonimatas.dev/s/rLBBNTFB9iGitKs/download/VanillaDona.zip"
+	args := os.Args
 
-	resp, err := http.Get(downloadLink)
+	if len(args) < 2 {
+		fmt.Println("Usage: downloader <url>")
+		os.Exit(1)
+	}
+
+	resp, err := http.Get(args[1])
 	if err != nil {
 		panic(err)
 	}
 
 	mediaType, params, err := mime.ParseMediaType(resp.Header.Get("Content-Disposition"))
-	contentLength := resp.Header.Get("Content-Length")
 	if err != nil {
 		panic(err)
+	}
+
+	contentLength := resp.Header.Get("Content-Length")
+	if contentLength == "" {
+		contentLength = "0"
 	}
 
 	if mediaType == "attachment" {

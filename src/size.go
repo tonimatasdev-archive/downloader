@@ -24,9 +24,11 @@ func FormattedLength(lengthStr string) string {
 	} else if length > MB && length < GB {
 		size = float64(length) / MB
 		sizeType = "MB"
-	} else {
+	} else if length > GB {
 		size = float64(length) / GB
 		sizeType = "GB"
+	} else {
+		return "Unknown"
 	}
 
 	return fmt.Sprintf("%.2f %s", size, sizeType)
