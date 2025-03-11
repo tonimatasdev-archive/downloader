@@ -2,6 +2,7 @@ package src
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -12,6 +13,20 @@ const (
 	MB = 1024 * KB
 	GB = 1024 * MB
 )
+
+var sizePerSecond = ""
+
+func updateSizePerSecond(file *os.File) {
+	var oldSize int64
+
+	for {
+		size := GetSize(file)
+		sizePerSecond = FormattedSizePerSecond(size, oldSize, 500)
+		oldSize = size
+
+		time.Sleep(time.Millisecond * 500)
+	}
+}
 
 func FormattedLength(lengthStr string) string {
 	length := ParseInt(lengthStr)
